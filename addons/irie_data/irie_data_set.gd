@@ -14,8 +14,8 @@ enum PropertyType {
 class PropertyResource:
     extends Resource
 
-    @export var prop_name:String
-    @export var prop_type:PropertyType
+    @export_storage var property_name:String
+    @export_storage var property_type:PropertyType
 
     func delete_row(row_index:int) -> void:
         pass
@@ -37,11 +37,11 @@ class PropertyResourceBool:
 
     static func for_prop(prop:Dictionary) -> PropertyResourceBool:
         var resource:PropertyResourceBool = PropertyResourceBool.new()
-        resource.prop_name = prop['name']
-        resource.prop_type = PropertyType.BOOL
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.BOOL
         return resource
 
-    @export var data:PackedByteArray = [] 
+    @export_storage var data:PackedByteArray = [] 
 
     func get_value(row_index:int) -> bool:
         return data[row_index]
@@ -68,7 +68,7 @@ class PropertyResourceBool:
         data.clear()
 
     func is_for_prop(prop:Dictionary) -> bool:
-        return prop_name == prop['name'] && prop['type'] == TYPE_BOOL
+        return property_name == prop['name'] && prop['type'] == TYPE_BOOL
 
 
 class PropertyResourceColor:
@@ -76,11 +76,11 @@ class PropertyResourceColor:
 
     static func for_prop(prop:Dictionary) -> PropertyResourceColor:
         var resource:PropertyResourceColor = PropertyResourceColor.new()
-        resource.prop_name = prop['name']
-        resource.prop_type = PropertyType.COLOR
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.COLOR
         return resource
 
-    @export var data:PackedColorArray = [] 
+    @export_storage var data:PackedColorArray = [] 
     
     func get_value(row_index:int) -> Color:
         return data[row_index]
@@ -107,23 +107,23 @@ class PropertyResourceColor:
         data.clear()
 
     func is_for_prop(prop:Dictionary) -> bool:
-        return prop_name == prop['name'] && prop['type'] == TYPE_COLOR
+        return property_name == prop['name'] && prop['type'] == TYPE_COLOR
 
 
 class PropertyResourceEnum:
     extends PropertyResource
 
-    @export var data:PackedByteArray = []
-    @export var enum_hint:String = ''
+    @export_storage var data:PackedByteArray = []
+    @export_storage var enum_name:String = ''
 
     static func is_enum_prop(prop:Dictionary):
         return false
 
     static func for_prop(prop:Dictionary) -> PropertyResourceEnum:
         var resource:PropertyResourceEnum = PropertyResourceEnum.new()
-        resource.prop_name = prop['name']
-        resource.prop_type = PropertyType.ENUM
-        resource.enum_hint = prop['hint']
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.ENUM
+        resource.enum_name = prop['class_name']
         return resource
 
     func get_value(row_index:int) -> float:
@@ -151,7 +151,7 @@ class PropertyResourceEnum:
         data.clear()
 
     func is_for_prop(prop:Dictionary) -> bool:
-        return prop_name == prop['name'] && prop['type'] == TYPE_INT && prop['hint'] == enum_hint
+        return property_name == prop['name'] && prop['type'] == TYPE_INT && prop['class_name'] == enum_name
 
 
 class PropertyResourceFloat:
@@ -159,14 +159,14 @@ class PropertyResourceFloat:
 
     static func for_prop(prop:Dictionary) -> PropertyResourceFloat:
         var resource:PropertyResourceFloat = PropertyResourceFloat.new()
-        resource.prop_name = prop['name']
-        resource.prop_type = PropertyType.FLOAT
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.FLOAT
         return resource
 
-    @export var data:PackedFloat64Array = []
+    @export_storage var data:PackedFloat64Array = []
 
     func _init() -> void:
-        prop_type = PropertyType.FLOAT
+        property_type = PropertyType.FLOAT
 
     func get_value(row_index:int) -> float:
         return data[row_index]
@@ -193,7 +193,7 @@ class PropertyResourceFloat:
         data.clear()
 
     func is_for_prop(prop:Dictionary) -> bool:
-        return prop_name == prop['name'] && prop['type'] == TYPE_FLOAT
+        return property_name == prop['name'] && prop['type'] == TYPE_FLOAT
 
 
 class PropertyResourceString:
@@ -201,11 +201,11 @@ class PropertyResourceString:
 
     static func for_prop(prop:Dictionary) -> PropertyResourceString:
         var resource:PropertyResourceString = PropertyResourceString.new()
-        resource.prop_name = prop['name']
-        resource.prop_type = PropertyType.STRING
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.STRING
         return resource
 
-    @export var data:PackedStringArray = []
+    @export_storage var data:PackedStringArray = []
 
     func get_value(row_index:int) -> String:
         return data[row_index]
@@ -238,13 +238,13 @@ class PropertyResourceString:
 class TableResource:
     extends Resource
 
-    @export var table_name:String
-    @export var property_resources:Dictionary = {}
-    @export var row_count:int = 0
+    @export_storage var table_name:String
+    @export_storage var property_resources:Dictionary = {}
+    @export_storage var row_count:int = 0
 
 class IrieDataTable:
 
-    var name:String:
+    var table_name:String:
         get():
             return _table_resource.table_name
 
@@ -254,22 +254,21 @@ class IrieDataTable:
     var _options:Dictionary
     var _unused_row_indexes:PackedInt32Array = []
     
-    func _init(data_set:IrieDataSet, name:String, schema_class:Variant, options:Dictionary):
-        prints('IrieDataTable', name, schema_class, options)
+    func _init(data_set:IrieDataSet, table_name:String, schema_class:Variant, options:Dictionary):
+        prints('IrieDataTable', table_name, schema_class, options)
         _data_set = data_set
         _schema_class = schema_class
         _options = options
-        _table_resource = _init_table_resource(name)
-        _init_property_resources()
+        _init_table_resource(table_name)
         _verify_relations()
 
-    func _init_table_resource(name:String) -> TableResource:
-        var table_resource:TableResource = _data_set.tables.get(name)
-        if not table_resource:
-            table_resource = TableResource.new()
-            table_resource.table_name = name
-            _data_set.tables[name] = table_resource
-        return table_resource
+    func _init_table_resource(table_name:String) -> void:
+        _table_resource = _data_set.tables.get(table_name)
+        if not _table_resource:
+            _table_resource = TableResource.new()
+            _table_resource.table_name = table_name
+            _data_set.tables[table_name] = _table_resource
+        _init_property_resources()
 
     func _init_property_resources():
 
@@ -289,11 +288,12 @@ class IrieDataTable:
                 else:
                     prints('  found in property map', prop)
                     if not resource.is_for_prop(prop):
-                        push_error('property type mismatch')
+                        push_error('Table %s property %s schema class mismatch: %s' % [table_name, resource, prop])
 
 
     func _create_resource_for_property(prop:Dictionary) -> PropertyResource:
         var prop_type:Variant.Type = prop['type']
+        var prop_usage:PropertyUsageFlags = prop['usage']
         var resource:PropertyResource = null
         match prop_type:
             TYPE_BOOL:
@@ -302,11 +302,12 @@ class IrieDataTable:
                 resource = PropertyResourceColor.for_prop(prop)
             TYPE_FLOAT:
                 resource = PropertyResourceFloat.for_prop(prop)
-            TYPE_INT:
-                if PropertyResourceEnum.is_enum_prop(prop):
-                    resource = PropertyResourceEnum.for_prop(prop)
+            TYPE_STRING:
+                resource = PropertyResourceString.for_prop(prop)
+            TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
+                resource = PropertyResourceEnum.for_prop(prop)
             _:
-                push_error('unsupported property type')
+                push_error('Table %s schema class unsupported property: %s' % [table_name, prop])
         return resource
 
 
@@ -336,7 +337,7 @@ class IrieDataTable:
         # TODO cache and add keys
         var obj:Object = _schema_class.new()
         for resource:PropertyResource in _table_resource.property_resources.values():
-            obj.set(resource.prop_name, resource.get_value(row_index))
+            obj.set(resource.property_name, resource.get_value(row_index))
         return obj
 
     func delete_all_rows() -> bool:
@@ -357,7 +358,7 @@ class IrieDataTable:
             row_index = _unused_row_indexes[_unused_row_indexes.size() - 1]
             _unused_row_indexes.resize(_unused_row_indexes.size() - 1)
         for resource:PropertyResource in _table_resource.property_resources.values():
-            resource.set_value(row_index, row.get(resource.prop_name))
+            resource.set_value(row_index, row.get(resource.property_name))
         _table_resource.row_count += 1
 
     func remove_unused_rows():
@@ -368,7 +369,7 @@ class IrieDataTable:
         _unused_row_indexes.clear()
         
 
-@export var tables:Dictionary = {}
+@export_storage var tables:Dictionary = {}
 
 func table(name:StringName, schema_class:Variant, options:Dictionary = {}) -> IrieDataTable:
     return IrieDataTable.new(self, name, schema_class, options)
