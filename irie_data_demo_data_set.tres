@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="IrieDataDemoDataSet" load_steps=2 format=3 uid="uid://dwvi2cvc3yxyx"]
+
+[ext_resource type="Script" path="res://irie_data_demo_data_set.gd" id="1_cmijo"]
+
+[resource]
+script = ExtResource("1_cmijo")
