@@ -360,6 +360,8 @@ class IrieDataTable:
 
     func _set_schema_class(schema_class:Variant, schema_options:Dictionary):
 
+        prints('---- _set_schema_class', table_name)
+        
         if schema_class is not GDScript:
             push_error('schema_class must be a GDScript defined class')
             return
@@ -420,6 +422,7 @@ class IrieDataTable:
         var prop_usage:PropertyUsageFlags = prop['usage']
         var default_value = _schema_class.get_property_default_value(prop_name)
         
+        prints('processing', prop_name, prop_type)
         var resource:PropertyResource = null
         match prop_type:
             TYPE_BOOL:
@@ -436,8 +439,9 @@ class IrieDataTable:
                 resource = PropertyResourceEnum.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_OBJECT:
                 resource = PropertyResourceForeignKey.for_prop(prop, prop_options, default_value, _row_count)
+                prints('got resource', resource)
 
-        if not resource:
+        if resource == null:
                 push_error('Table %s schema class unsupported property: %s' % [table_name, prop])
 
         return resource
