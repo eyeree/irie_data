@@ -9,7 +9,8 @@ enum PropertyType {
     ENUM,
     FLOAT,
     STRING,
-    VECTOR3
+    VECTOR3,
+    OBJECT
 }
 
 class PropertyResource:
@@ -241,6 +242,45 @@ class PropertyResourceVector3:
         return property_name == prop['name'] && prop['type'] == TYPE_VECTOR3
 
 
+class PropertyResourceObject:
+    extends PropertyResource
+
+    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceObject:
+        var resource:PropertyResourceObject = PropertyResourceObject.new()
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.OBJECT
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
+        return resource
+
+    @export_storage var data:PackedStringArray = [] # Store foreign keys as strings
+    var _related_table:IrieDataTable = null
+
+    func get_value(row_index:int) -> Object:
+        var key = data[row_index]
+        if _related_table && key:
+            return _related_table.get_row(key)
+        return null
+
+    func set_value(row_index:int, new_value:Object) -> void:
+        if new_value:
+            data[row_index] = str(new_value.get(_related_table._key_property_name))
+        else:
+            data[row_index] = ""
+
+    func delete_row(row_index:int) -> void:
+        data.remove_at(row_index)
+
+    func delete_all_rows() -> void:
+        data.clear()
+
+    func is_for_prop(prop:Dictionary) -> bool:
+        return property_name == prop['name'] && prop['type'] == TYPE_OBJECT
+
+
 class IrieDataTable:
     extends Resource
 
@@ -268,6 +308,7 @@ class IrieDataTable:
         _schema_options = schema_options
 
         _update_property_resources()
+        _verify_relations()
 
 
     func _update_property_resources():
@@ -330,13 +371,25 @@ class IrieDataTable:
                 resource = PropertyResourceVector3.for_prop(prop, default_value, _row_count)
             TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
                 resource = PropertyResourceEnum.for_prop(prop, default_value, _row_count)
+            TYPE_OBJECT:
+                resource = PropertyResourceObject.for_prop(prop, default_value, _row_count)
+                var related_table = prop_options.get('relation')
+                if related_table:
+                    resource._related_table = related_table
+                else:
+                    push_error('Table %s object property %s missing relation in schema options' % [table_name, prop_name])
             _:
                 push_error('Table %s schema class unsupported property: %s' % [table_name, prop])
         return resource
 
 
     func _verify_relations():
-        pass
+        for prop_name in _schema_options:
+            var prop_options = _schema_options[prop_name]
+            if prop_options.has('relation'):
+                var resource = _property_resources.get(prop_name)
+                if not resource or not (resource is PropertyResourceObject):
+                    push_error('Table %s property %s has relation but is not an object type' % [table_name, prop_name])
 
 
     func get_row_count() -> int:
@@ -401,13 +454,12 @@ class IrieDataTable:
             return true
 
 
-    func add_row(row_object:Object) -> bool:
+    func add_row(row_object:Object, save_related:bool = false) -> bool:
         var key:Variant = row_object.get(_key_property_name)
         if _key_to_row_index_map.has(key):
             push_error('An row with key %s already exists in table %s' % [key, _table_name])
             return false
         else:
-
             # new rows are appended
             var row_index:int = _row_count
 
@@ -417,7 +469,10 @@ class IrieDataTable:
 
             # set value in property resource for added row
             for resource:PropertyResource in _property_resources.values():
-                resource.set_value(row_index, row_object.get(resource.property_name))
+                var value = row_object.get(resource.property_name)
+                if save_related && resource is PropertyResourceObject && value:
+                    resource._related_table.add_or_update_row(value, save_related)
+                resource.set_value(row_index, value)
 
             # one more row now
             _row_count += 1
@@ -425,27 +480,29 @@ class IrieDataTable:
             return true
 
 
-    func update_row(row_object:Object) -> bool:
+    func update_row(row_object:Object, save_related:bool = false) -> bool:
         var key:Variant = row_object.get(_key_property_name)
         var row_index:int = _key_to_row_index_map.get(key, -1)
         if row_index == -1:
             push_error('No row with key %s exists in table %s' % [key, _table_name])
             return false
         else:
-
             # set value in property resource for updated row
             for resource:PropertyResource in _property_resources.values():
-                resource.set_value(row_index, row_object.get(resource.property_name))
+                var value = row_object.get(resource.property_name)
+                if save_related && resource is PropertyResourceObject && value:
+                    resource._related_table.add_or_update_row(value, save_related)
+                resource.set_value(row_index, value)
 
             return true
 
 
-    func add_or_update_row(row_object:Object) -> bool:
+    func add_or_update_row(row_object:Object, save_related:bool = false) -> bool:
         if has_row(row_object.get(_key_property_name)):
-            update_row(row_object)
+            update_row(row_object, save_related)
             return false
         else:
-            add_row(row_object)
+            add_row(row_object, save_related)
             return true
 
 
