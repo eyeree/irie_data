@@ -1,6 +1,90 @@
-[gd_resource type="Resource" script_class="IrieDataDemoDataSet" load_steps=2 format=3 uid="uid://dwvi2cvc3yxyx"]
+[gd_resource type="Resource" script_class="IrieDataDemoDataSet" load_steps=16 format=3 uid="uid://dwvi2cvc3yxyx"]
 
 [ext_resource type="Script" path="res://irie_data_demo_data_set.gd" id="1_cmijo"]
 
+[sub_resource type="GDScript" id="GDScript_kpldv"]
+
+[sub_resource type="Resource" id="Resource_ymyhu"]
+script = SubResource("GDScript_kpldv")
+data = PackedStringArray()
+property_name = "name"
+property_type = 5
+
+[sub_resource type="GDScript" id="GDScript_a2h2o"]
+
+[sub_resource type="Resource" id="Resource_7xpxd"]
+script = SubResource("GDScript_a2h2o")
+data = PackedByteArray()
+enum_name = "IrieDataDemoDataSet.ShapeType"
+property_name = "type"
+property_type = 3
+
+[sub_resource type="GDScript" id="GDScript_nojww"]
+
+[sub_resource type="Resource" id="Resource_qsuye"]
+script = SubResource("GDScript_nojww")
+data = PackedVector3Array()
+property_name = "size"
+property_type = 6
+
+[sub_resource type="GDScript" id="GDScript_3c34x"]
+
+[sub_resource type="Resource" id="Resource_2vl7q"]
+script = SubResource("GDScript_3c34x")
+_table_name = "shapes"
+_property_resources = {
+"name": SubResource("Resource_ymyhu"),
+"size": SubResource("Resource_qsuye"),
+"type": SubResource("Resource_7xpxd")
+}
+_row_count = 0
+_key_to_row_index_map = {}
+
+[sub_resource type="Resource" id="Resource_b2kcb"]
+script = SubResource("GDScript_kpldv")
+data = PackedStringArray()
+property_name = "name"
+property_type = 5
+
+[sub_resource type="GDScript" id="GDScript_q48if"]
+
+[sub_resource type="Resource" id="Resource_y5jww"]
+script = SubResource("GDScript_q48if")
+data = PackedColorArray()
+property_name = "color"
+property_type = 2
+
+[sub_resource type="Resource" id="Resource_wxlxo"]
+script = SubResource("GDScript_3c34x")
+_table_name = "materials"
+_property_resources = {
+"color": SubResource("Resource_y5jww"),
+"name": SubResource("Resource_b2kcb")
+}
+_row_count = 0
+_key_to_row_index_map = {}
+
+[sub_resource type="Resource" id="Resource_g5o0h"]
+script = SubResource("GDScript_kpldv")
+data = PackedStringArray()
+property_name = "name"
+property_type = 5
+
+[sub_resource type="Resource" id="Resource_bwexx"]
+script = SubResource("GDScript_3c34x")
+_table_name = "objects"
+_property_resources = {
+"material": null,
+"name": SubResource("Resource_g5o0h"),
+"shape": null
+}
+_row_count = 0
+_key_to_row_index_map = {}
+
 [resource]
 script = ExtResource("1_cmijo")
+tables = {
+"materials": SubResource("Resource_wxlxo"),
+"objects": SubResource("Resource_bwexx"),
+"shapes": SubResource("Resource_2vl7q")
+}
