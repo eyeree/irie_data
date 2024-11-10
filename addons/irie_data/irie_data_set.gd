@@ -240,10 +240,10 @@ class IrieDataTable:
         _key_property_name = ''
 
         for prop in _schema_class.get_script_property_list():
-            var prop_name:String = prop['name']
             var prop_usage:PropertyUsageFlags = prop['usage']
-            var prop_options:Dictionary = _schema_options[prop_name]
             if prop_usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+                var prop_name:String = prop['name']
+                var prop_options:Dictionary = _schema_options.get(prop_name, {})
                 var is_new:bool = _update_property_resource(prop)
                 if not is_new:
                     unused_property_resource_names.erase(prop_name)
@@ -277,7 +277,7 @@ class IrieDataTable:
         var prop_name:String = prop['name']
         var prop_type:Variant.Type = prop['type']
         var prop_usage:PropertyUsageFlags = prop['usage']
-        var prop_options:Dictionary = _schema_options[prop_name]
+        var prop_options:Dictionary = _schema_options.get(prop_name, {})
         var default_value = _schema_class.get_property_default_value(prop_name)
         var resource:PropertyResource = null
         match prop_type:
