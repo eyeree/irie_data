@@ -8,7 +8,8 @@ enum PropertyType {
     COLOR,
     ENUM,
     FLOAT,
-    STRING
+    STRING,
+    VECTOR3
 }
 
 class PropertyResource:
@@ -204,6 +205,42 @@ class PropertyResourceString:
     func delete_all_rows() -> void:
         data.clear()
 
+    func is_for_prop(prop:Dictionary) -> bool:
+        return property_name == prop['name'] && prop['type'] == TYPE_STRING
+
+
+class PropertyResourceVector3:
+    extends PropertyResource
+
+    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceVector3:
+        var resource:PropertyResourceVector3 = PropertyResourceVector3.new()
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.VECTOR3
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
+        return resource
+
+    @export_storage var data:PackedVector3Array = []
+
+    func get_value(row_index:int) -> Vector3:
+        return data[row_index]
+
+    func set_value(row_index:int, new_value:Vector3) -> void:
+        data[row_index] = new_value
+
+    func delete_row(row_index:int) -> void:
+        data.remove_at(row_index)
+
+    func delete_all_rows() -> void:
+        data.clear()
+
+    func is_for_prop(prop:Dictionary) -> bool:
+        return property_name == prop['name'] && prop['type'] == TYPE_VECTOR3
+
+
 class IrieDataTable:
     extends Resource
 
@@ -289,6 +326,8 @@ class IrieDataTable:
                 resource = PropertyResourceFloat.for_prop(prop, default_value, _row_count)
             TYPE_STRING:
                 resource = PropertyResourceString.for_prop(prop, default_value, _row_count)
+            TYPE_VECTOR3:
+                resource = PropertyResourceVector3.for_prop(prop, default_value, _row_count)
             TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
                 resource = PropertyResourceEnum.for_prop(prop, default_value, _row_count)
             _:
