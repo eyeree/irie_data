@@ -1,27 +1,84 @@
-[gd_scene load_steps=8 format=3 uid="uid://bth4lurgh45hv"]
+[gd_scene load_steps=16 format=3 uid="uid://bth4lurgh45hv"]
 
 [ext_resource type="Script" path="res://irie_data_demo_scene.gd" id="1_1dqfb"]
 [ext_resource type="Script" path="res://irie_data_demo_data_set.gd" id="2_wph6y"]
 
-[sub_resource type="GDScript" id="GDScript_2jn5b"]
+[sub_resource type="GDScript" id="GDScript_gr8qx"]
 
-[sub_resource type="Resource" id="Resource_wgc7u"]
-script = SubResource("GDScript_2jn5b")
+[sub_resource type="Resource" id="Resource_tx0j3"]
+script = SubResource("GDScript_gr8qx")
+data = PackedStringArray()
+property_name = "name"
+property_type = 5
 
-[sub_resource type="Resource" id="Resource_hvk4g"]
-script = SubResource("GDScript_2jn5b")
+[sub_resource type="GDScript" id="GDScript_qpqbk"]
 
-[sub_resource type="Resource" id="Resource_sgrfh"]
-script = SubResource("GDScript_2jn5b")
+[sub_resource type="Resource" id="Resource_2xyyi"]
+script = SubResource("GDScript_qpqbk")
+data = PackedByteArray()
+enum_name = "IrieDataDemoDataSet.ShapeType"
+property_name = "type"
+property_type = 3
 
-[sub_resource type="Resource" id="Resource_xfst4"]
+[sub_resource type="GDScript" id="GDScript_3qp56"]
+
+[sub_resource type="Resource" id="Resource_c1fwf"]
+script = SubResource("GDScript_3qp56")
+_table_name = "shapes"
+_property_resources = {
+"name": SubResource("Resource_tx0j3"),
+"size": null,
+"type": SubResource("Resource_2xyyi")
+}
+_row_count = 0
+
+[sub_resource type="Resource" id="Resource_0rkif"]
+script = SubResource("GDScript_gr8qx")
+data = PackedStringArray()
+property_name = "name"
+property_type = 5
+
+[sub_resource type="GDScript" id="GDScript_nfjuw"]
+
+[sub_resource type="Resource" id="Resource_2xg0o"]
+script = SubResource("GDScript_nfjuw")
+data = PackedColorArray()
+property_name = "color"
+property_type = 2
+
+[sub_resource type="Resource" id="Resource_0wbjn"]
+script = SubResource("GDScript_3qp56")
+_table_name = "materials"
+_property_resources = {
+"color": SubResource("Resource_2xg0o"),
+"name": SubResource("Resource_0rkif")
+}
+_row_count = 0
+
+[sub_resource type="Resource" id="Resource_yew2x"]
+script = SubResource("GDScript_gr8qx")
+data = PackedStringArray()
+property_name = "name"
+property_type = 5
+
+[sub_resource type="Resource" id="Resource_pmcrl"]
+script = SubResource("GDScript_3qp56")
+_table_name = "objects"
+_property_resources = {
+"material": null,
+"name": SubResource("Resource_yew2x"),
+"shape": null
+}
+_row_count = 0
+
+[sub_resource type="Resource" id="Resource_kyt6l"]
 script = ExtResource("2_wph6y")
 tables = {
-"materials": SubResource("Resource_wgc7u"),
-"objects": SubResource("Resource_hvk4g"),
-"shapes": SubResource("Resource_sgrfh")
+"materials": SubResource("Resource_0wbjn"),
+"objects": SubResource("Resource_pmcrl"),
+"shapes": SubResource("Resource_c1fwf")
 }
 
 [node name="IrieDataDemo" type="Node3D"]
 script = ExtResource("1_1dqfb")
-data_set = SubResource("Resource_xfst4")
+data_set = SubResource("Resource_kyt6l")

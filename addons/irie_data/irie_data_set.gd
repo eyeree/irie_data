@@ -17,28 +17,40 @@ class PropertyResource:
     @export_storage var property_name:String
     @export_storage var property_type:PropertyType
 
-    func delete_row(row_index:int) -> void:
-        pass
+    # Virtual methods that should be overridden in derived classes. The ones that
+    # refer to the property type are commented out. If generic classes are ever
+    # supported, one could be used here.
 
     func is_for_prop(prop:Dictionary) -> bool:
+        push_error('must override is_for_prop in PropertyResource derived class')
         return false
 
-    func remove_unused_rows(unused_row_indexes:PackedInt32Array) -> void:
-        pass
-
     func delete_all_rows() -> void:
-        pass
+        push_error('must override delete_all_rows in PropertyResource derived class')
+
+    func delete_row(row_index:int) -> void:
+        push_error('must override delete_row in PropertyResource derived class')
+        
+    # func get_value(row_index:int) -> T:
+    #     push_error('must override get_value in PropertyResource derived class')
+
+    # func set_value(row_index:int, new_value:T) -> void:
+    #     push_error('must override set_value in PropertyResource derived class')
+
 
 
 class PropertyResourceBool:
     extends PropertyResource
 
-    # TODO: pack multiple rows into a single byte?
-
-    static func for_prop(prop:Dictionary) -> PropertyResourceBool:
+    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceBool:
         var resource:PropertyResourceBool = PropertyResourceBool.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.BOOL
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
         return resource
 
     @export_storage var data:PackedByteArray = [] 
@@ -47,25 +59,13 @@ class PropertyResourceBool:
         return data[row_index]
 
     func set_value(row_index:int, new_value:bool) -> void:
-        data[row_index] = new_value
-
-    func remove_unused_rows(unused_row_indexes:PackedInt32Array) -> void:
-        var new_data:PackedByteArray = []
-        new_data.resize(data.size() - unused_row_indexes.size())
-        var dst_index:int = 0
-        var next_unused_row_indexes_index:int = 0;
-        var next_unused_row_index:int = unused_row_indexes[next_unused_row_indexes_index]
-        for src_index:int in data.size():
-            if src_index == next_unused_row_index:
-                next_unused_row_indexes_index += 1
-                next_unused_row_index = unused_row_indexes[next_unused_row_indexes_index]
-            else:
-                new_data[dst_index] = data[src_index]
-                dst_index += 1
-        data = new_data       
+        data[row_index] = new_value   
 
     func delete_all_rows() -> void:
         data.clear()
+
+    func delete_row(row_index:int) -> void:
+        data.remove_at(row_index)
 
     func is_for_prop(prop:Dictionary) -> bool:
         return property_name == prop['name'] && prop['type'] == TYPE_BOOL
@@ -74,10 +74,15 @@ class PropertyResourceBool:
 class PropertyResourceColor:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary) -> PropertyResourceColor:
+    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceColor:
         var resource:PropertyResourceColor = PropertyResourceColor.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.COLOR
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
         return resource
 
     @export_storage var data:PackedColorArray = [] 
@@ -88,21 +93,9 @@ class PropertyResourceColor:
     func set_value(row_index:int, new_value:Color) -> void:
         data[row_index] = new_value
 
-    func remove_unused_rows(unused_row_indexes:PackedInt32Array) -> void:
-        var new_data:PackedColorArray = []
-        new_data.resize(data.size() - unused_row_indexes.size())
-        var dst_index:int = 0
-        var next_unused_row_indexes_index:int = 0;
-        var next_unused_row_index:int = unused_row_indexes[next_unused_row_indexes_index]
-        for src_index:int in data.size():
-            if src_index == next_unused_row_index:
-                next_unused_row_indexes_index += 1
-                next_unused_row_index = unused_row_indexes[next_unused_row_indexes_index]
-            else:
-                new_data[dst_index] = data[src_index]
-                dst_index += 1  
-        data = new_data       
-
+    func delete_row(row_index:int) -> void:
+        data.remove_at(row_index)
+    
     func delete_all_rows() -> void:
         data.clear()
 
@@ -119,11 +112,16 @@ class PropertyResourceEnum:
     static func is_enum_prop(prop:Dictionary):
         return false
 
-    static func for_prop(prop:Dictionary) -> PropertyResourceEnum:
+    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceEnum:
         var resource:PropertyResourceEnum = PropertyResourceEnum.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.ENUM
         resource.enum_name = prop['class_name']
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
         return resource
 
     func get_value(row_index:int) -> float:
@@ -132,20 +130,9 @@ class PropertyResourceEnum:
     func set_value(row_index:int, new_value:float) -> void:
         data[row_index] = new_value
 
-    func remove_unused_rows(unused_row_indexes:PackedInt32Array) -> void:
-        var new_data:PackedByteArray = []
-        new_data.resize(data.size() - unused_row_indexes.size())
-        var dst_index:int = 0
-        var next_unused_row_indexes_index:int = 0;
-        var next_unused_row_index:int = unused_row_indexes[next_unused_row_indexes_index]
-        for src_index:int in data.size():
-            if src_index == next_unused_row_index:
-                next_unused_row_indexes_index += 1
-                next_unused_row_index = unused_row_indexes[next_unused_row_indexes_index]
-            else:
-                new_data[dst_index] = data[src_index]
-                dst_index += 1
-        data = new_data       
+    func delete_row(row_index:int) -> void:
+        data.remove_at(row_index)
+    
 
     func delete_all_rows() -> void:
         data.clear()
@@ -157,10 +144,15 @@ class PropertyResourceEnum:
 class PropertyResourceFloat:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary) -> PropertyResourceFloat:
+    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceFloat:
         var resource:PropertyResourceFloat = PropertyResourceFloat.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.FLOAT
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
         return resource
 
     @export_storage var data:PackedFloat64Array = []
@@ -174,20 +166,8 @@ class PropertyResourceFloat:
     func set_value(row_index:int, new_value:float) -> void:
         data[row_index] = new_value
 
-    func remove_unused_rows(unused_row_indexes:PackedInt32Array) -> void:
-        var new_data:PackedFloat64Array = []
-        new_data.resize(data.size() - unused_row_indexes.size())
-        var dst_index:int = 0
-        var next_unused_row_indexes_index:int = 0;
-        var next_unused_row_index:int = unused_row_indexes[next_unused_row_indexes_index]
-        for src_index:int in data.size():
-            if src_index == next_unused_row_index:
-                next_unused_row_indexes_index += 1
-                next_unused_row_index = unused_row_indexes[next_unused_row_indexes_index]
-            else:
-                new_data[dst_index] = data[src_index]
-                dst_index += 1
-        data = new_data       
+    func delete_row(row_index:int) -> void:
+        data.remove_at(row_index)     
 
     func delete_all_rows() -> void:
         data.clear()
@@ -199,10 +179,15 @@ class PropertyResourceFloat:
 class PropertyResourceString:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary) -> PropertyResourceString:
+    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceString:
         var resource:PropertyResourceString = PropertyResourceString.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.STRING
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
         return resource
 
     @export_storage var data:PackedStringArray = []
@@ -214,98 +199,98 @@ class PropertyResourceString:
         data[row_index] = new_value
 
     func delete_row(row_index:int) -> void:
-        data[row_index] = ''
-
-    func remove_unused_rows(unused_row_indexes:PackedInt32Array) -> void:
-        var new_data:PackedStringArray = []
-        new_data.resize(data.size() - unused_row_indexes.size())
-        var dst_index:int = 0
-        var next_unused_row_index:int = unused_row_indexes[0]
-        var unused_row_indexes_index:int = 1;
-        for src_index:int in data.size():
-            if src_index == next_unused_row_index:
-                next_unused_row_index = unused_row_indexes[unused_row_indexes_index]
-                unused_row_indexes_index += 1
-            else:
-                new_data[dst_index] = data[src_index]
-                dst_index += 1
-        data = new_data       
+        data.remove_at(row_index)
 
     func delete_all_rows() -> void:
         data.clear()
 
-
-class TableResource:
-    extends Resource
-
-    @export_storage var table_name:String
-    @export_storage var property_resources:Dictionary = {}
-    @export_storage var row_count:int = 0
-
 class IrieDataTable:
+    extends Resource
 
     var table_name:String:
         get():
-            return _table_resource.table_name
+            return _table_name
 
-    var _data_set:IrieDataSet
-    var _table_resource:TableResource
+    @export_storage var _table_name:String
+    @export_storage var _property_resources:Dictionary = {}
+    @export_storage var _row_count:int = 0
+    @export_storage var _key_to_row_index_map:Dictionary = {}
+
     var _schema_class:Variant
-    var _options:Dictionary
-    var _unused_row_indexes:PackedInt32Array = []
-    
-    func _init(data_set:IrieDataSet, table_name:String, schema_class:Variant, options:Dictionary):
-        prints('IrieDataTable', table_name, schema_class, options)
-        _data_set = data_set
-        _schema_class = schema_class
-        _options = options
-        _init_table_resource(table_name)
-        _verify_relations()
+    var _schema_options:Dictionary
+    var _key_property_name:StringName = ''
+    var _key_to_object_map:Dictionary = {}
 
-    func _init_table_resource(table_name:String) -> void:
-        _table_resource = _data_set.tables.get(table_name)
-        if not _table_resource:
-            _table_resource = TableResource.new()
-            _table_resource.table_name = table_name
-            _data_set.tables[table_name] = _table_resource
-        _init_property_resources()
+    func _set_schema_class(schema_class:Variant, schema_options:Dictionary):
 
-    func _init_property_resources():
-
-        if _schema_class is not GDScript:
+        if schema_class is not GDScript:
             push_error('schema_class must be a GDScript defined class')
             return
+
+        _schema_class = schema_class
+        _schema_options = schema_options
+
+        _update_property_resources()
+
+
+    func _update_property_resources():
+
+        var unused_property_resource_names:Array = _property_resources.keys()
+
+        _key_property_name = ''
 
         for prop in _schema_class.get_script_property_list():
             var prop_name:String = prop['name']
             var prop_usage:PropertyUsageFlags = prop['usage']
+            var prop_options:Dictionary = _schema_options[prop_name]
             if prop_usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
-                var resource = _table_resource.property_resources.get(prop_name)
-                if not resource:
-                    prints('  add to property map', prop)
-                    resource = _create_resource_for_property(prop)
-                    _table_resource.property_resources[prop_name] = resource
-                else:
-                    prints('  found in property map', prop)
-                    if not resource.is_for_prop(prop):
-                        push_error('Table %s property %s schema class mismatch: %s' % [table_name, resource, prop])
+                var is_new:bool = _update_property_resource(prop)
+                if not is_new:
+                    unused_property_resource_names.erase(prop_name)
+                if prop_options.get('key', false):
+                    _key_property_name = prop_name
+
+        for unused_property_resource_name in unused_property_resource_names:
+            prints('  removed from property map', unused_property_resource_name)
+            _property_resources.erase(unused_property_resource_name)
+
+        if _key_property_name == '':
+            push_error('No key property specified for table %s' % table_name)
+
+
+    func _update_property_resource(prop:Dictionary) -> bool:
+        var prop_name:String = prop['name']
+        var resource = _property_resources.get(prop_name)
+        if not resource:
+            prints('  add to property map', prop)
+            resource = _create_resource_for_property(prop)
+            _property_resources[prop_name] = resource
+            return true
+        else:
+            prints('  found in property map', prop)
+            if not resource.is_for_prop(prop):
+                push_error('Table %s property %s schema class mismatch: %s' % [table_name, resource, prop])
+            return false
 
 
     func _create_resource_for_property(prop:Dictionary) -> PropertyResource:
+        var prop_name:String = prop['name']
         var prop_type:Variant.Type = prop['type']
         var prop_usage:PropertyUsageFlags = prop['usage']
+        var prop_options:Dictionary = _schema_options[prop_name]
+        var default_value = _schema_class.get_property_default_value(prop_name)
         var resource:PropertyResource = null
         match prop_type:
             TYPE_BOOL:
-                resource = PropertyResourceBool.for_prop(prop)
+                resource = PropertyResourceBool.for_prop(prop, default_value, _row_count)
             TYPE_COLOR:
-                resource = PropertyResourceColor.for_prop(prop)
+                resource = PropertyResourceColor.for_prop(prop, default_value, _row_count)
             TYPE_FLOAT:
-                resource = PropertyResourceFloat.for_prop(prop)
+                resource = PropertyResourceFloat.for_prop(prop, default_value, _row_count)
             TYPE_STRING:
-                resource = PropertyResourceString.for_prop(prop)
+                resource = PropertyResourceString.for_prop(prop, default_value, _row_count)
             TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
-                resource = PropertyResourceEnum.for_prop(prop)
+                resource = PropertyResourceEnum.for_prop(prop, default_value, _row_count)
             _:
                 push_error('Table %s schema class unsupported property: %s' % [table_name, prop])
         return resource
@@ -314,62 +299,137 @@ class IrieDataTable:
     func _verify_relations():
         pass
 
+
     func get_row_count() -> int:
-        return _table_resource.row_count
+        return _row_count
+
 
     func get_all_rows() -> Array[Object]:
         var result:Array[Object] = []
-        result.resize(_table_resource.row_count)
-        _unused_row_indexes.sort()
+        result.resize(_row_count)
         var dst_index:int = 0
-        var next_unused_row_index:int = _unused_row_indexes[0]
-        var unused_row_indexes_index:int = 1;
-        for row_index:int in _unused_row_indexes.size() + _table_resource.row_count:
-            if row_index == next_unused_row_index:
-                next_unused_row_index = _unused_row_indexes[unused_row_indexes_index]
-                unused_row_indexes_index += 1
-            else:
-                result[dst_index] = _get_row(row_index)
-                dst_index += 1
+        for key in _key_to_row_index_map.keys():
+            var row_object:Object = get_row(key)
+            result[dst_index] = row_object
+            dst_index += 1
         return result
 
-    func _get_row(row_index:int) -> Object:
-        # TODO cache and add keys
-        var obj:Object = _schema_class.new()
-        for resource:PropertyResource in _table_resource.property_resources.values():
-            obj.set(resource.property_name, resource.get_value(row_index))
-        return obj
 
-    func delete_all_rows() -> bool:
-        # TODO check integrity
-        for resource:PropertyResource in _table_resource.property_resources.values():
+    func get_row(key:Variant) -> Object:
+        var row_object:Object = _key_to_object_map.get(key, null)
+        if row_object == null:
+            var row_index:int = _key_to_row_index_map.get(key, -1)
+            if row_index == -1:
+                push_error('There is no row with key %s in table %s' % [key, _table_name])
+                return null
+            row_object = _schema_class.new()
+            for resource:PropertyResource in _property_resources.values():
+                row_object.set(resource.property_name, resource.get_value(row_index))
+        return row_object
+
+
+    func delete_all_rows():
+        _row_count = 0
+        _key_to_row_index_map.clear()
+        _key_to_object_map.clear()
+        for resource:PropertyResource in _property_resources.values():
             resource.delete_all_rows()
-        return true 
 
-    func _delete_row(row_index:int):
-        _unused_row_indexes.append(row_index)
-        _table_resource.row_count -= 1
-        for resource:PropertyResource in _table_resource.property_resources.values():
-            resource.delete_row(row_index)
 
-    func add_row(row:Object):
-        var row_index:int = _table_resource.row_count
-        if _unused_row_indexes.size() > 0:
-            row_index = _unused_row_indexes[_unused_row_indexes.size() - 1]
-            _unused_row_indexes.resize(_unused_row_indexes.size() - 1)
-        for resource:PropertyResource in _table_resource.property_resources.values():
-            resource.set_value(row_index, row.get(resource.property_name))
-        _table_resource.row_count += 1
+    func delete_row(key:Variant) -> bool:
+        var row_index:int = _key_to_row_index_map.get(key, -1)
+        if row_index == -1: 
+            return false
+        else:
 
-    func remove_unused_rows():
-        if _unused_row_indexes.size() == 0: return
-        _unused_row_indexes.sort()
-        for resource:PropertyResource in _table_resource.property_resources.values():
-            resource.remove_unused_rows(_unused_row_indexes)
-        _unused_row_indexes.clear()
-        
+            # remove key for deleted row from maps
+            _key_to_row_index_map.erase(key)
+            _key_to_object_map.erase(key)
+
+            # update row index map for indexes above the one deleted
+            for other_key in _key_to_row_index_map.keys():
+                var other_row_index = _key_to_row_index_map[other_key]
+                if other_row_index > row_index:
+                    _key_to_row_index_map[other_key] = other_row_index - 1
+
+            # remove deleted row from all property resources
+            for resource:PropertyResource in _property_resources.values():
+                resource.delete_row(row_index)
+
+            # one fewer rows now
+            _row_count -= 1
+
+            return true
+
+
+    func add_row(row_object:Object) -> bool:
+        var key:Variant = row_object.get(_key_property_name)
+        if _key_to_row_index_map.has(key):
+            push_error('An row with key %s already exists in table %s' % [key, _table_name])
+            return false
+        else:
+
+            # new rows are appended
+            var row_index:int = _row_count
+
+            # add key for added row to maps 
+            _key_to_row_index_map[key] = row_index
+            _key_to_object_map[key] = row_object
+
+            # set value in property resource for added row
+            for resource:PropertyResource in _property_resources.values():
+                resource.set_value(row_index, row_object.get(resource.property_name))
+
+            # one more row now
+            _row_count += 1
+
+            return true
+
+
+    func update_row(row_object:Object) -> bool:
+        var key:Variant = row_object.get(_key_property_name)
+        var row_index:int = _key_to_row_index_map.get(key, -1)
+        if row_index == -1:
+            push_error('No row with key %s exists in table %s' % [key, _table_name])
+            return false
+        else:
+
+            # set value in property resource for updated row
+            for resource:PropertyResource in _property_resources.values():
+                resource.set_value(row_index, row_object.get(resource.property_name))
+
+            return true
+
+
+    func add_or_update_row(row_object:Object) -> bool:
+        if has_row(row_object.get(_key_property_name)):
+            update_row(row_object)
+            return false
+        else:
+            add_row(row_object)
+            return true
+
+
+    func has_row(key:Variant) -> bool:
+        return _key_to_row_index_map.has(key)
+
 
 @export_storage var tables:Dictionary = {}
 
-func table(name:StringName, schema_class:Variant, options:Dictionary = {}) -> IrieDataTable:
-    return IrieDataTable.new(self, name, schema_class, options)
+func table(table_name:StringName, schema_class:Variant, options:Dictionary = {}) -> IrieDataTable:
+    var table_resource:IrieDataTable = tables.get(table_name)
+    if table_resource == null:
+        table_resource = IrieDataTable.new()
+        table_resource._table_name = table_name
+        tables[table_name] = table_resource
+    table_resource._set_schema_class(schema_class, options)
+    return table_resource
+
+func schema_key() -> Dictionary:
+    return { 'key': true }
+
+func schema_row_id() -> Dictionary:
+    return { 'key': true, 'row_id': true }
+
+func schema_relation(target_table:IrieDataTable) -> Dictionary:
+    return { 'relation': target_table }
