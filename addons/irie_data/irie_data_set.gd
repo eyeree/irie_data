@@ -10,22 +10,26 @@ enum PropertyType {
     FLOAT,
     STRING,
     VECTOR3,
-    OBJECT
+    FOREIGN_KEY
 }
 
 class PropertyResource:
     extends Resource
 
-    @export_storage var property_name:String
+    var property_name:String
     @export_storage var property_type:PropertyType
+
+    static func _get_variant_type_string(type:Variant.Type) -> String:
+        # TODO: Variant.Type.keys()[type]
+        return str(type)
 
     # Virtual methods that should be overridden in derived classes. The ones that
     # refer to the property type are commented out. If generic classes are ever
     # supported, one could be used here.
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        push_error('must override is_for_prop in PropertyResource derived class')
-        return false
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+        push_error('must override set_prop in PropertyResource derived class')
+        return ''
 
     func delete_all_rows() -> void:
         push_error('must override delete_all_rows in PropertyResource derived class')
@@ -44,7 +48,7 @@ class PropertyResource:
 class PropertyResourceBool:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceBool:
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceBool:
         var resource:PropertyResourceBool = PropertyResourceBool.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.BOOL
@@ -69,14 +73,19 @@ class PropertyResourceBool:
     func delete_row(row_index:int) -> void:
         data.remove_at(row_index)
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        return property_name == prop['name'] && prop['type'] == TYPE_BOOL
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+        if prop['type'] != TYPE_BOOL:
+            return 'Expected property type bool but property had type %s' % _get_variant_type_string(prop['type'])
 
+        property_name = prop['name']
+
+        return ''
+        
 
 class PropertyResourceColor:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceColor:
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceColor:
         var resource:PropertyResourceColor = PropertyResourceColor.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.COLOR
@@ -101,8 +110,13 @@ class PropertyResourceColor:
     func delete_all_rows() -> void:
         data.clear()
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        return property_name == prop['name'] && prop['type'] == TYPE_COLOR
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+        if prop['type'] != TYPE_COLOR:
+            return 'Expected property type Color but property had type %s' % _get_variant_type_string(prop['type'])
+
+        property_name = prop['name']
+
+        return ''        
 
 
 class PropertyResourceEnum:
@@ -114,7 +128,7 @@ class PropertyResourceEnum:
     static func is_enum_prop(prop:Dictionary):
         return false
 
-    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceEnum:
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceEnum:
         var resource:PropertyResourceEnum = PropertyResourceEnum.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.ENUM
@@ -139,14 +153,26 @@ class PropertyResourceEnum:
     func delete_all_rows() -> void:
         data.clear()
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        return property_name == prop['name'] && prop['type'] == TYPE_INT && prop['class_name'] == enum_name
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+
+        if (prop['usage'] & PROPERTY_USAGE_CLASS_IS_ENUM) == 0:
+            return 'Expected enum property'
+
+        if prop['type'] != TYPE_INT:
+            return 'Expected property type int (for enum) but property had type %s' % _get_variant_type_string(prop['type'])
+
+        if prop['class_name'] != enum_name:
+            return 'Expected property enum type %s but property had enum type %s' % prop['class_name']
+
+        property_name = prop['name']
+
+        return '' 
 
 
 class PropertyResourceFloat:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceFloat:
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceFloat:
         var resource:PropertyResourceFloat = PropertyResourceFloat.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.FLOAT
@@ -174,14 +200,19 @@ class PropertyResourceFloat:
     func delete_all_rows() -> void:
         data.clear()
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        return property_name == prop['name'] && prop['type'] == TYPE_FLOAT
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+        if prop['type'] != TYPE_FLOAT:
+            return 'Expected property type float but property had type %s' % _get_variant_type_string(prop['type'])
+
+        property_name = prop['name']
+
+        return ''
 
 
 class PropertyResourceString:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceString:
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceString:
         var resource:PropertyResourceString = PropertyResourceString.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.STRING
@@ -206,14 +237,19 @@ class PropertyResourceString:
     func delete_all_rows() -> void:
         data.clear()
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        return property_name == prop['name'] && prop['type'] == TYPE_STRING
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+        if prop['type'] != TYPE_STRING:
+            return 'Expected property type String but property had type %s' % _get_variant_type_string(prop['type'])
+
+        property_name = prop['name']
+
+        return ''   
 
 
 class PropertyResourceVector3:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceVector3:
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceVector3:
         var resource:PropertyResourceVector3 = PropertyResourceVector3.new()
         resource.property_name = prop['name']
         resource.property_type = PropertyType.VECTOR3
@@ -238,36 +274,50 @@ class PropertyResourceVector3:
     func delete_all_rows() -> void:
         data.clear()
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        return property_name == prop['name'] && prop['type'] == TYPE_VECTOR3
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+        if prop['type'] != TYPE_VECTOR3:
+            return 'Expected property type Vector3 but property had type %s.' % _get_variant_type_string(prop['type'])
+
+        property_name = prop['name']
+
+        return ''
 
 
-class PropertyResourceObject:
+class PropertyResourceForeignKey:
     extends PropertyResource
 
-    static func for_prop(prop:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceObject:
-        var resource:PropertyResourceObject = PropertyResourceObject.new()
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceForeignKey:
+
+        var related_table = prop_options.get('relation')
+        if not related_table:
+            push_error('Object property %s missing relation in schema options' % [prop['name']])
+            return null
+
+        var resource:PropertyResourceForeignKey = PropertyResourceForeignKey.new()
         resource.property_name = prop['name']
-        resource.property_type = PropertyType.OBJECT
+        resource.property_type = PropertyType.FOREIGN_KEY
+        resource.related_table = related_table
+
         if row_count > 0:
             resource.data.resize(row_count)
             if resource.data[0] != default_value:
                 for i:int in row_count:
                     resource.data[i] = default_value
+
         return resource
 
     @export_storage var data:PackedStringArray = [] # Store foreign keys as strings
-    var _related_table:IrieDataTable = null
+    var related_table:IrieDataTable = null
 
     func get_value(row_index:int) -> Object:
         var key = data[row_index]
-        if _related_table && key:
-            return _related_table.get_row(key)
+        if related_table && key:
+            return related_table.get_row(key)
         return null
 
     func set_value(row_index:int, new_value:Object) -> void:
         if new_value:
-            data[row_index] = str(new_value.get(_related_table._key_property_name))
+            data[row_index] = str(new_value.get(related_table._key_property_name))
         else:
             data[row_index] = ""
 
@@ -277,8 +327,18 @@ class PropertyResourceObject:
     func delete_all_rows() -> void:
         data.clear()
 
-    func is_for_prop(prop:Dictionary) -> bool:
-        return property_name == prop['name'] && prop['type'] == TYPE_OBJECT
+    func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
+        if prop['type'] != TYPE_OBJECT:
+            return 'Expected property type Object but property had type %s.' % _get_variant_type_string(prop['type'])
+
+        property_name = prop['name']
+
+        related_table = prop_options.get('relation')
+        if not related_table:
+            return 'No relation was specified for an Object typed property.'
+
+        return ''
+
 
 
 class IrieDataTable:
@@ -338,48 +398,48 @@ class IrieDataTable:
 
     func _update_property_resource(prop:Dictionary) -> bool:
         var prop_name:String = prop['name']
+        var prop_options:Dictionary = _schema_options.get(prop_name, {})
         var resource = _property_resources.get(prop_name)
         if not resource:
             prints('  add to property map', prop)
-            resource = _create_resource_for_property(prop)
+            resource = _create_resource_for_property(prop, prop_options)
             _property_resources[prop_name] = resource
             return true
         else:
             prints('  found in property map', prop)
-            if not resource.is_for_prop(prop):
-                push_error('Table %s property %s schema class mismatch: %s' % [table_name, resource, prop])
+            var error_message:String = resource.set_prop(prop, prop_options)
+            if error_message != '':
+                push_error('Table %s property %s schema class mismatch: %s' % [table_name, prop_name, error_message])
             return false
 
 
-    func _create_resource_for_property(prop:Dictionary) -> PropertyResource:
+    func _create_resource_for_property(prop:Dictionary, prop_options:Dictionary) -> PropertyResource:
+        
         var prop_name:String = prop['name']
         var prop_type:Variant.Type = prop['type']
         var prop_usage:PropertyUsageFlags = prop['usage']
-        var prop_options:Dictionary = _schema_options.get(prop_name, {})
         var default_value = _schema_class.get_property_default_value(prop_name)
+        
         var resource:PropertyResource = null
         match prop_type:
             TYPE_BOOL:
-                resource = PropertyResourceBool.for_prop(prop, default_value, _row_count)
+                resource = PropertyResourceBool.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_COLOR:
-                resource = PropertyResourceColor.for_prop(prop, default_value, _row_count)
+                resource = PropertyResourceColor.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_FLOAT:
-                resource = PropertyResourceFloat.for_prop(prop, default_value, _row_count)
+                resource = PropertyResourceFloat.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_STRING:
-                resource = PropertyResourceString.for_prop(prop, default_value, _row_count)
+                resource = PropertyResourceString.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_VECTOR3:
-                resource = PropertyResourceVector3.for_prop(prop, default_value, _row_count)
+                resource = PropertyResourceVector3.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
-                resource = PropertyResourceEnum.for_prop(prop, default_value, _row_count)
+                resource = PropertyResourceEnum.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_OBJECT:
-                resource = PropertyResourceObject.for_prop(prop, default_value, _row_count)
-                var related_table = prop_options.get('relation')
-                if related_table:
-                    resource._related_table = related_table
-                else:
-                    push_error('Table %s object property %s missing relation in schema options' % [table_name, prop_name])
-            _:
+                resource = PropertyResourceForeignKey.for_prop(prop, prop_options, default_value, _row_count)
+
+        if not resource:
                 push_error('Table %s schema class unsupported property: %s' % [table_name, prop])
+
         return resource
 
 
@@ -388,7 +448,7 @@ class IrieDataTable:
             var prop_options = _schema_options[prop_name]
             if prop_options.has('relation'):
                 var resource = _property_resources.get(prop_name)
-                if not resource or not (resource is PropertyResourceObject):
+                if not resource or not (resource is PropertyResourceForeignKey):
                     push_error('Table %s property %s has relation but is not an object type' % [table_name, prop_name])
 
 
@@ -470,7 +530,7 @@ class IrieDataTable:
             # set value in property resource for added row
             for resource:PropertyResource in _property_resources.values():
                 var value = row_object.get(resource.property_name)
-                if save_related && resource is PropertyResourceObject && value:
+                if save_related && resource is PropertyResourceForeignKey && value:
                     resource._related_table.add_or_update_row(value, save_related)
                 resource.set_value(row_index, value)
 
@@ -490,7 +550,7 @@ class IrieDataTable:
             # set value in property resource for updated row
             for resource:PropertyResource in _property_resources.values():
                 var value = row_object.get(resource.property_name)
-                if save_related && resource is PropertyResourceObject && value:
+                if save_related && resource is PropertyResourceForeignKey && value:
                     resource._related_table.add_or_update_row(value, save_related)
                 resource.set_value(row_index, value)
 
