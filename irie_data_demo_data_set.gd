@@ -23,17 +23,17 @@ class ObstacleData:
 	var material:MaterialData
 
 var _shapes = table('shapes', ShapeData, {
-	'name': schema_key()
+	'name': table_key()
 })
 
 var _materials = table('materials', MaterialData, {
-	'name': schema_key()
+	'name': table_key()
 })
 
 var _obstacles = table('objects', ObstacleData, {
-	'name': schema_key(),
-	'shape': schema_relation(_shapes), 
-	'material': schema_relation(_materials)
+	'name': table_key(),
+	'shape': table_relation(_shapes), 
+	'material': table_relation(_materials)
 })
 
 func get_obstacles() -> Array[ObstacleData]:

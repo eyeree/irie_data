@@ -10,7 +10,8 @@ enum PropertyType {
     FLOAT,
     STRING,
     VECTOR3,
-    FOREIGN_KEY
+    FOREIGN_KEY,
+    AUTO_KEY
 }
 
 class PropertyResource:
@@ -246,6 +247,29 @@ class PropertyResourceString:
         return ''   
 
 
+class PropertyResourceAutoKey:
+    extends PropertyResourceString
+
+    static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceAutoKey:
+        var resource:PropertyResourceAutoKey = PropertyResourceAutoKey.new()
+        resource.property_name = prop['name']
+        resource.property_type = PropertyType.AUTO_KEY
+        resource.next_unique_id = 1
+        if row_count > 0:
+            resource.data.resize(row_count)
+            if resource.data[0] != default_value:
+                for i:int in row_count:
+                    resource.data[i] = default_value
+        return resource
+
+    @export_storage var next_unique_id:int = 1
+
+    func generate_key() -> String:
+        var key = str(next_unique_id)
+        next_unique_id += 1
+        return key
+
+
 class PropertyResourceVector3:
     extends PropertyResource
 
@@ -361,7 +385,7 @@ class IrieDataTable:
     func _set_schema_class(schema_class:Variant, schema_options:Dictionary):
 
         prints('---- _set_schema_class', table_name)
-        
+
         if schema_class is not GDScript:
             push_error('schema_class must be a GDScript defined class')
             return
@@ -422,7 +446,6 @@ class IrieDataTable:
         var prop_usage:PropertyUsageFlags = prop['usage']
         var default_value = _schema_class.get_property_default_value(prop_name)
         
-        prints('processing', prop_name, prop_type)
         var resource:PropertyResource = null
         match prop_type:
             TYPE_BOOL:
@@ -432,14 +455,16 @@ class IrieDataTable:
             TYPE_FLOAT:
                 resource = PropertyResourceFloat.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_STRING:
-                resource = PropertyResourceString.for_prop(prop, prop_options, default_value, _row_count)
+                if prop_options.get('auto', false):
+                    resource = PropertyResourceAutoKey.for_prop(prop, prop_options, default_value, _row_count)
+                else:
+                    resource = PropertyResourceString.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_VECTOR3:
                 resource = PropertyResourceVector3.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
                 resource = PropertyResourceEnum.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_OBJECT:
                 resource = PropertyResourceForeignKey.for_prop(prop, prop_options, default_value, _row_count)
-                prints('got resource', resource)
 
         if resource == null:
                 push_error('Table %s schema class unsupported property: %s' % [table_name, prop])
@@ -519,7 +544,16 @@ class IrieDataTable:
 
 
     func add_row(row_object:Object, save_related:bool = false) -> bool:
-        var key:Variant = row_object.get(_key_property_name)
+        var key_resource = _property_resources[_key_property_name]
+        var key:Variant
+        
+        # If this is an auto-key, generate a new unique key
+        if key_resource is PropertyResourceAutoKey:
+            key = key_resource.generate_key()
+            row_object.set(_key_property_name, key)
+        else:
+            key = row_object.get(_key_property_name)
+            
         if _key_to_row_index_map.has(key):
             push_error('An row with key %s already exists in table %s' % [key, _table_name])
             return false
@@ -585,11 +619,11 @@ func table(table_name:StringName, schema_class:Variant, options:Dictionary = {})
     table_resource._set_schema_class(schema_class, options)
     return table_resource
 
-func schema_key() -> Dictionary:
+func table_key() -> Dictionary:
     return { 'key': true }
 
-func schema_row_id() -> Dictionary:
-    return { 'key': true, 'row_id': true }
+func table_auto_key() -> Dictionary:
+    return { 'key': true, 'auto': true }
 
-func schema_relation(target_table:IrieDataTable) -> Dictionary:
+func table_relation(target_table:IrieDataTable) -> Dictionary:
     return { 'relation': target_table }
