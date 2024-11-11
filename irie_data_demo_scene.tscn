@@ -1,86 +1,18 @@
-[gd_scene load_steps=18 format=3 uid="uid://bth4lurgh45hv"]
+[gd_scene load_steps=8 format=3 uid="uid://bth4lurgh45hv"]
 
 [ext_resource type="Script" path="res://irie_data_demo_scene.gd" id="1_1dqfb"]
 [ext_resource type="Script" path="res://irie_data_demo_data_set.gd" id="2_wph6y"]
 
-[sub_resource type="GDScript" id="GDScript_kpldv"]
-
-[sub_resource type="Resource" id="Resource_60rth"]
-script = SubResource("GDScript_kpldv")
-data = PackedStringArray()
-property_name = "name"
-property_type = 5
-
-[sub_resource type="GDScript" id="GDScript_a2h2o"]
-
-[sub_resource type="Resource" id="Resource_e62ue"]
-script = SubResource("GDScript_a2h2o")
-data = PackedByteArray()
-enum_name = "IrieDataDemoDataSet.ShapeType"
-property_name = "type"
-property_type = 3
-
-[sub_resource type="GDScript" id="GDScript_nojww"]
-
-[sub_resource type="Resource" id="Resource_lftfs"]
-script = SubResource("GDScript_nojww")
-data = PackedVector3Array()
-property_name = "size"
-property_type = 6
-
 [sub_resource type="GDScript" id="GDScript_3c34x"]
-
-[sub_resource type="Resource" id="Resource_prkp5"]
-script = SubResource("GDScript_3c34x")
-_table_name = "shapes"
-_property_resources = {
-"name": SubResource("Resource_60rth"),
-"size": SubResource("Resource_lftfs"),
-"type": SubResource("Resource_e62ue")
-}
-_row_count = 0
-_key_to_row_index_map = {}
-
-[sub_resource type="Resource" id="Resource_iy7it"]
-script = SubResource("GDScript_kpldv")
-data = PackedStringArray()
-property_name = "name"
-property_type = 5
-
-[sub_resource type="GDScript" id="GDScript_q48if"]
-
-[sub_resource type="Resource" id="Resource_mn3rm"]
-script = SubResource("GDScript_q48if")
-data = PackedColorArray()
-property_name = "color"
-property_type = 2
 
 [sub_resource type="Resource" id="Resource_7ar7d"]
 script = SubResource("GDScript_3c34x")
-_table_name = "materials"
-_property_resources = {
-"color": SubResource("Resource_mn3rm"),
-"name": SubResource("Resource_iy7it")
-}
-_row_count = 0
-_key_to_row_index_map = {}
-
-[sub_resource type="Resource" id="Resource_u1py2"]
-script = SubResource("GDScript_kpldv")
-data = PackedStringArray()
-property_name = "name"
-property_type = 5
 
 [sub_resource type="Resource" id="Resource_qw3tt"]
 script = SubResource("GDScript_3c34x")
-_table_name = "objects"
-_property_resources = {
-"material": null,
-"name": SubResource("Resource_u1py2"),
-"shape": null
-}
-_row_count = 0
-_key_to_row_index_map = {}
+
+[sub_resource type="Resource" id="Resource_prkp5"]
+script = SubResource("GDScript_3c34x")
 
 [sub_resource type="Resource" id="Resource_c7cb8"]
 script = ExtResource("2_wph6y")
