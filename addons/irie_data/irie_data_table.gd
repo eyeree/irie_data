@@ -63,30 +63,30 @@ func _update_property_resource(prop:Dictionary) -> bool:
             push_error('Table %s property %s schema class mismatch: %s' % [table_name, prop_name, error_message])
         return false
 
-func _create_resource_for_property(prop:Dictionary, prop_options:Dictionary) -> PropertyResource:
+func _create_resource_for_property(prop:Dictionary, prop_options:Dictionary) -> IrieDataProperty:
     var prop_name:String = prop['name']
     var prop_type:Variant.Type = prop['type']
     var prop_usage:PropertyUsageFlags = prop['usage']
     var default_value = _schema_class.get_property_default_value(prop_name)
     
-    var resource:PropertyResource = null
+    var resource:IrieDataProperty = null
     match prop_type:
         TYPE_BOOL:
-            resource = PropertyResourceBool.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyBool.for_prop(prop, prop_options, default_value, _row_count)
         TYPE_COLOR:
-            resource = PropertyResourceColor.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyColor.for_prop(prop, prop_options, default_value, _row_count)
         TYPE_FLOAT:
-            resource = PropertyResourceFloat.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyFloat.for_prop(prop, prop_options, default_value, _row_count)
         TYPE_STRING when prop_options.get('auto', false):
-            resource = PropertyResourceAutoKey.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyAutoKey.for_prop(prop, prop_options, default_value, _row_count)
         TYPE_STRING:
-            resource = PropertyResourceString.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyString.for_prop(prop, prop_options, default_value, _row_count)
         TYPE_VECTOR3:
-            resource = PropertyResourceVector3.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyVector3.for_prop(prop, prop_options, default_value, _row_count)
         TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
-            resource = PropertyResourceEnum.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyEnum.for_prop(prop, prop_options, default_value, _row_count)
         TYPE_OBJECT:
-            resource = PropertyResourceForeignKey.for_prop(prop, prop_options, default_value, _row_count)
+            resource = IrieDataPropertyForeignKey.for_prop(prop, prop_options, default_value, _row_count)
 
     if resource == null:
             push_error('Table %s schema class unsupported property: %s' % [table_name, prop])
@@ -98,7 +98,7 @@ func _verify_relations():
         var prop_options = _schema_options[prop_name]
         if prop_options.has('relation'):
             var resource = _property_resources.get(prop_name)
-            if not resource or not (resource is PropertyResourceForeignKey):
+            if not resource or not (resource is IrieDataPropertyForeignKey):
                 push_error('Table %s property %s has relation but is not an object type' % [table_name, prop_name])
 
 func get_row_count() -> int:
@@ -122,7 +122,7 @@ func get_row(key:Variant) -> Object:
             push_error('There is no row with key %s in table %s' % [key, _table_name])
             return null
         row_object = _schema_class.new()
-        for resource:PropertyResource in _property_resources.values():
+        for resource:IrieDataProperty in _property_resources.values():
             row_object.set(resource.property_name, resource.get_value(row_index))
     return row_object
 
@@ -130,7 +130,7 @@ func delete_all_rows():
     _row_count = 0
     _key_to_row_index_map.clear()
     _key_to_object_map.clear()
-    for resource:PropertyResource in _property_resources.values():
+    for resource:IrieDataProperty in _property_resources.values():
         resource.delete_all_rows()
 
 func delete_row(key:Variant) -> bool:
@@ -149,7 +149,7 @@ func delete_row(key:Variant) -> bool:
                 _key_to_row_index_map[other_key] = other_row_index - 1
 
         # remove deleted row from all property resources
-        for resource:PropertyResource in _property_resources.values():
+        for resource:IrieDataProperty in _property_resources.values():
             resource.delete_row(row_index)
 
         # one fewer rows now
@@ -162,7 +162,7 @@ func add_row(row_object:Object, save_related:bool = false) -> bool:
     var key:Variant
     
     # If this is an auto-key, generate a new unique key
-    if key_resource is PropertyResourceAutoKey:
+    if key_resource is IrieDataPropertyAutoKey:
         key = key_resource.generate_key()
         row_object.set(_key_property_name, key)
     else:
@@ -180,9 +180,9 @@ func add_row(row_object:Object, save_related:bool = false) -> bool:
         _key_to_object_map[key] = row_object
 
         # set value in property resource for added row
-        for resource:PropertyResource in _property_resources.values():
+        for resource:IrieDataProperty in _property_resources.values():
             var value = row_object.get(resource.property_name)
-            if save_related && resource is PropertyResourceForeignKey && value:
+            if save_related && resource is IrieDataPropertyForeignKey && value:
                 resource.related_table.add_or_update_row(value, save_related)
             resource.set_value(row_index, value)
 
@@ -199,9 +199,9 @@ func update_row(row_object:Object, save_related:bool = false) -> bool:
         return false
     else:
         # set value in property resource for updated row
-        for resource:PropertyResource in _property_resources.values():
+        for resource:IrieDataProperty in _property_resources.values():
             var value = row_object.get(resource.property_name)
-            if save_related && resource is PropertyResourceForeignKey && value:
+            if save_related && resource is IrieDataPropertyForeignKey && value:
                 resource.related_table.add_or_update_row(value, save_related)
             resource.set_value(row_index, value)
 

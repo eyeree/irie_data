@@ -1,9 +1,9 @@
 @tool
-class_name PropertyResourceColor
-extends PropertyResource
+class_name IrieDataPropertyColor
+extends IrieDataProperty
 
-static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceColor:
-    var resource:PropertyResourceColor = PropertyResourceColor.new()
+static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> IrieDataPropertyColor:
+    var resource:IrieDataPropertyColor = IrieDataPropertyColor.new()
     resource.property_name = prop['name']
     if row_count > 0:
         resource.data.resize(row_count)

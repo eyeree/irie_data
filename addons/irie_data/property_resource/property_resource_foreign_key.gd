@@ -1,14 +1,14 @@
 @tool
-class_name PropertyResourceForeignKey
-extends PropertyResource
+class_name IrieDataPropertyForeignKey
+extends IrieDataProperty
 
-static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceForeignKey:
+static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> IrieDataPropertyForeignKey:
     var related_table = prop_options.get('relation')
     if not related_table:
         push_error('Object property %s missing relation in schema options' % [prop['name']])
         return null
 
-    var resource:PropertyResourceForeignKey = PropertyResourceForeignKey.new()
+    var resource:IrieDataPropertyForeignKey = IrieDataPropertyForeignKey.new()
     resource.property_name = prop['name']
     resource.related_table = related_table
 

@@ -1,5 +1,5 @@
 @tool
-class_name PropertyResource
+class_name IrieDataProperty
 extends Resource
 
 var property_name:String
@@ -13,17 +13,17 @@ static func _get_variant_type_string(type:Variant.Type) -> String:
 # supported, one could be used here.
 
 func set_prop(prop:Dictionary, prop_options:Dictionary) -> String:
-    push_error('must override set_prop in PropertyResource derived class')
+    push_error('must override set_prop in IrieDataProperty derived class')
     return ''
 
 func delete_all_rows() -> void:
-    push_error('must override delete_all_rows in PropertyResource derived class')
+    push_error('must override delete_all_rows in IrieDataProperty derived class')
 
 func delete_row(row_index:int) -> void:
-    push_error('must override delete_row in PropertyResource derived class')
+    push_error('must override delete_row in IrieDataProperty derived class')
     
 # func get_value(row_index:int) -> T:
-#     push_error('must override get_value in PropertyResource derived class')
+#     push_error('must override get_value in IrieDataProperty derived class')
 
 # func set_value(row_index:int, new_value:T) -> void:
-#     push_error('must override set_value in PropertyResource derived class')
+#     push_error('must override set_value in IrieDataProperty derived class')

@@ -1,9 +1,9 @@
 @tool
-class_name PropertyResourceAutoKey
-extends PropertyResourceString
+class_name IrieDataPropertyAutoKey
+extends IrieDataPropertyString
 
-static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceAutoKey:
-    var resource:PropertyResourceAutoKey = PropertyResourceAutoKey.new()
+static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> IrieDataPropertyAutoKey:
+    var resource:IrieDataPropertyAutoKey = IrieDataPropertyAutoKey.new()
     resource.property_name = prop['name']
     resource.next_unique_id = 1
     if row_count > 0:

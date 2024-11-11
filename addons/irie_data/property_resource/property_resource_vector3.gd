@@ -1,9 +1,9 @@
 @tool
-class_name PropertyResourceVector3
-extends PropertyResource
+class_name IrieDataPropertyVector3
+extends IrieDataProperty
 
-static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceVector3:
-    var resource:PropertyResourceVector3 = PropertyResourceVector3.new()
+static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> IrieDataPropertyVector3:
+    var resource:IrieDataPropertyVector3 = IrieDataPropertyVector3.new()
     resource.property_name = prop['name']
     if row_count > 0:
         resource.data.resize(row_count)

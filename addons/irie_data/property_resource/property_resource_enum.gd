@@ -1,6 +1,6 @@
 @tool
-class_name PropertyResourceEnum
-extends PropertyResource
+class_name IrieDataPropertyEnum
+extends IrieDataProperty
 
 @export_storage var data:PackedByteArray = []
 @export_storage var enum_name:String = ''
@@ -8,8 +8,8 @@ extends PropertyResource
 static func is_enum_prop(prop:Dictionary):
     return false
 
-static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceEnum:
-    var resource:PropertyResourceEnum = PropertyResourceEnum.new()
+static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> IrieDataPropertyEnum:
+    var resource:IrieDataPropertyEnum = IrieDataPropertyEnum.new()
     resource.property_name = prop['name']
     resource.enum_name = prop['class_name']
     if row_count > 0:

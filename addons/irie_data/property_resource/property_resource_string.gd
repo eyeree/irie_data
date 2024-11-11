@@ -1,9 +1,9 @@
 @tool
-class_name PropertyResourceString
-extends PropertyResource
+class_name IrieDataPropertyString
+extends IrieDataProperty
 
-static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> PropertyResourceString:
-    var resource:PropertyResourceString = PropertyResourceString.new()
+static func for_prop(prop:Dictionary, prop_options:Dictionary, default_value:Variant, row_count:int) -> IrieDataPropertyString:
+    var resource:IrieDataPropertyString = IrieDataPropertyString.new()
     resource.property_name = prop['name']
     if row_count > 0:
         resource.data.resize(row_count)
