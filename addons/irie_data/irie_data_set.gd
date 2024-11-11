@@ -454,11 +454,10 @@ class IrieDataTable:
                 resource = PropertyResourceColor.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_FLOAT:
                 resource = PropertyResourceFloat.for_prop(prop, prop_options, default_value, _row_count)
+            TYPE_STRING when prop_options.get('auto', false):
+                resource = PropertyResourceAutoKey.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_STRING:
-                if prop_options.get('auto', false):
-                    resource = PropertyResourceAutoKey.for_prop(prop, prop_options, default_value, _row_count)
-                else:
-                    resource = PropertyResourceString.for_prop(prop, prop_options, default_value, _row_count)
+                resource = PropertyResourceString.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_VECTOR3:
                 resource = PropertyResourceVector3.for_prop(prop, prop_options, default_value, _row_count)
             TYPE_INT when prop_usage & PROPERTY_USAGE_CLASS_IS_ENUM:
