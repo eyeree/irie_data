@@ -9,79 +9,79 @@
 [ext_resource type="Script" path="res://addons/irie_data/property_resource/property_resource_color.gd" id="7_ljsbf"]
 [ext_resource type="Script" path="res://addons/irie_data/property_resource/property_resource_foreign_key.gd" id="8_4ylpp"]
 
-[sub_resource type="Resource" id="Resource_qx6fy"]
+[sub_resource type="Resource" id="Resource_m5o3q"]
 script = ExtResource("3_wwaua")
 data = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_ysffn"]
+[sub_resource type="Resource" id="Resource_2dmqg"]
 script = ExtResource("4_872sm")
 data = PackedByteArray()
 enum_name = "IrieDataDemoDataSet.ShapeType"
 
-[sub_resource type="Resource" id="Resource_1elgr"]
+[sub_resource type="Resource" id="Resource_0q3jy"]
 script = ExtResource("5_5v1iv")
 data = PackedVector3Array()
 
-[sub_resource type="Resource" id="Resource_31evm"]
+[sub_resource type="Resource" id="Resource_3utjb"]
 script = ExtResource("6_felum")
 _table_name = "shapes"
 _property_resources = {
-"name": SubResource("Resource_qx6fy"),
-"size": SubResource("Resource_1elgr"),
-"type": SubResource("Resource_ysffn")
+"name": SubResource("Resource_m5o3q"),
+"size": SubResource("Resource_0q3jy"),
+"type": SubResource("Resource_2dmqg")
 }
 _row_count = 0
 _key_to_row_index_map = {}
 
-[sub_resource type="Resource" id="Resource_7uet5"]
+[sub_resource type="Resource" id="Resource_vh8bd"]
 script = ExtResource("3_wwaua")
 data = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_skt6n"]
+[sub_resource type="Resource" id="Resource_vh8k4"]
 script = ExtResource("7_ljsbf")
 data = PackedColorArray()
 
-[sub_resource type="Resource" id="Resource_xshwu"]
+[sub_resource type="Resource" id="Resource_ech6h"]
 script = ExtResource("6_felum")
 _table_name = "materials"
 _property_resources = {
-"color": SubResource("Resource_skt6n"),
-"name": SubResource("Resource_7uet5")
+"color": SubResource("Resource_vh8k4"),
+"name": SubResource("Resource_vh8bd")
 }
 _row_count = 0
 _key_to_row_index_map = {}
 
-[sub_resource type="Resource" id="Resource_evdng"]
+[sub_resource type="Resource" id="Resource_13gee"]
 script = ExtResource("3_wwaua")
 data = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_0rech"]
+[sub_resource type="Resource" id="Resource_my8x3"]
 script = ExtResource("8_4ylpp")
 data = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_sctdi"]
+[sub_resource type="Resource" id="Resource_ycqnh"]
 script = ExtResource("8_4ylpp")
 data = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_7ch8j"]
+[sub_resource type="Resource" id="Resource_ryl1h"]
 script = ExtResource("6_felum")
 _table_name = "objects"
 _property_resources = {
-"material": SubResource("Resource_sctdi"),
-"name": SubResource("Resource_evdng"),
-"shape": SubResource("Resource_0rech")
+"material": SubResource("Resource_ycqnh"),
+"name": SubResource("Resource_13gee"),
+"shape": SubResource("Resource_my8x3")
 }
 _row_count = 0
 _key_to_row_index_map = {}
 
-[sub_resource type="Resource" id="Resource_flaoj"]
+[sub_resource type="Resource" id="Resource_0jtbb"]
 script = ExtResource("2_wph6y")
 tables = {
-"materials": SubResource("Resource_xshwu"),
-"objects": SubResource("Resource_7ch8j"),
-"shapes": SubResource("Resource_31evm")
+"materials": SubResource("Resource_ech6h"),
+"objects": SubResource("Resource_ryl1h"),
+"shapes": SubResource("Resource_3utjb")
 }
 
 [node name="IrieDataDemo" type="Node3D"]
 script = ExtResource("1_1dqfb")
-data_set = SubResource("Resource_flaoj")
+data_set = SubResource("Resource_0jtbb")
